@@ -4,7 +4,8 @@ from conans import ConanFile, CMake, tools
 
 class LibgeotiffConan(ConanFile):
     name = "libgeotiff"
-    description = "Libgeotiff is an open source library normally hosted on top of libtiff for reading, and writing GeoTIFF information tags."
+    description = "Libgeotiff is an open source library normally hosted on top " \
+                  "of libtiff for reading, and writing GeoTIFF information tags."
     license = ["MIT", "BSD-3-Clause"]
     topics = ("conan", "libgeotiff", "geotiff", "tiff", "parser")
     homepage = "https://github.com/OSGeo/libgeotiff"
@@ -31,7 +32,7 @@ class LibgeotiffConan(ConanFile):
 
     def configure(self):
         del self.settings.compiler.cppstd
-        if not self.options.shared or self.options["proj"].shared: # dependency PROJ is a C++ library with C API
+        if not self.options.shared or self.options["proj"].shared: # because PROJ is a C++ library with C API
             del self.settings.compiler.libcxx
 
     def requirements(self):

@@ -32,8 +32,7 @@ class LibgeotiffConan(ConanFile):
 
     def configure(self):
         del self.settings.compiler.cppstd
-        if not self.options.shared or self.options["proj"].shared: # because PROJ is a C++ library with C API
-            del self.settings.compiler.libcxx
+        del self.settings.compiler.libcxx
 
     def requirements(self):
         self.requires.add("libtiff/4.1.0")

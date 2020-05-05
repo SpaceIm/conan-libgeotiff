@@ -4,5 +4,5 @@ sources:
     sha256: "fb04491572afb25ffe60239fdfdcfa2c64e6cf644cad9b0b922b10115ccbd488"
 patches:
   "1.5.1":
-    - patch_file: "patches/fix-cmake.patch"
+    - patch_file: "patches/fix-cmake-1.5.1.patch"
       base_path: "source_subfolder"

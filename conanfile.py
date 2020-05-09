@@ -69,5 +69,3 @@ class LibgeotiffConan(ConanFile):
         self.cpp_info.names["cmake_find_package"] = "GeoTIFF"
         self.cpp_info.names["cmake_find_package_multi"] = "GeoTIFF"
         self.cpp_info.libs = tools.collect_libs(self)
-        if self.settings.os == "Linux":
-            self.cpp_info.system_libs.append("m")

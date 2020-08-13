@@ -36,7 +36,7 @@ class LibgeotiffConan(ConanFile):
 
     def requirements(self):
         self.requires("libtiff/4.1.0")
-        self.requires("proj/7.0.0")
+        self.requires("proj/7.1.0")
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])

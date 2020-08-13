@@ -11,7 +11,7 @@ class LibgeotiffConan(ConanFile):
     homepage = "https://github.com/OSGeo/libgeotiff"
     url = "https://github.com/conan-io/conan-center-index"
     exports_sources = ["CMakeLists.txt", "patches/**"]
-    generators = "cmake"
+    generators = "cmake", "cmake_find_package_multi"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}
@@ -55,6 +55,9 @@ class LibgeotiffConan(ConanFile):
             return self._cmake
         self._cmake = CMake(self)
         self._cmake.definitions["WITH_UTILITIES"] = False
+        self._cmake.definitions["WITH_TIFF"] = True
+        self._cmake.definitions["WITH_ZLIB"] = False # zlib and libjpeg are not direct
+        self._cmake.definitions["WITH_JPEG"] = False # dependencies of libgeotiff
         self._cmake.definitions["WITH_TOWGS84"] = True
         self._cmake.configure(build_folder=self._build_subfolder)
         return self._cmake

@@ -68,6 +68,12 @@ class LibgeotiffConan(ConanFile):
         tools.rmdir(os.path.join(self.package_folder, "share"))
 
     def package_info(self):
+        # TODO: CMake imported target shouldn't be namespaced (geotiff_library instead of GeoTIFF::geotiff_library)
         self.cpp_info.names["cmake_find_package"] = "GeoTIFF"
         self.cpp_info.names["cmake_find_package_multi"] = "GeoTIFF"
-        self.cpp_info.libs = tools.collect_libs(self)
+        self.cpp_info.components["geotiff"].names["cmake_find_package"] = "geotiff_library"
+        self.cpp_info.components["geotiff"].names["cmake_find_package_multi"] = "geotiff_library"
+        self.cpp_info.components["geotiff"].libs = tools.collect_libs(self)
+        if self.settings.os == "Linux":
+            self.cpp_info.components["geotiff"].system_libs.append("m")
+        self.cpp_info.components["geotiff"].requires = ["libtiff::libtiff", "proj::proj"]

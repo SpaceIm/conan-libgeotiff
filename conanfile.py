@@ -1,6 +1,9 @@
-import os
-
 from conans import ConanFile, CMake, tools
+import os
+import textwrap
+
+required_conan_version = ">=1.33.0"
+
 
 class LibgeotiffConan(ConanFile):
     name = "libgeotiff"
@@ -37,12 +40,12 @@ class LibgeotiffConan(ConanFile):
         del self.settings.compiler.libcxx
 
     def requirements(self):
-        self.requires("libtiff/4.1.0")
-        self.requires("proj/7.1.0")
+        self.requires("libtiff/4.2.0")
+        self.requires("proj/8.0.0")
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-        os.rename(self.name + "-" + self.version, self._source_subfolder)
+        tools.get(**self.conan_data["sources"][self.version],
+                  destination=self._source_subfolder, strip_root=True)
 
     def build(self):
         for patch in self.conan_data.get("patches", {}).get(self.version, []):
@@ -69,14 +72,59 @@ class LibgeotiffConan(ConanFile):
         tools.rmdir(os.path.join(self.package_folder, "cmake"))
         tools.rmdir(os.path.join(self.package_folder, "doc"))
         tools.rmdir(os.path.join(self.package_folder, "share"))
+        self._create_cmake_module_variables(
+            os.path.join(self.package_folder, self._module_subfolder, self._module_vars_file)
+        )
+        self._create_cmake_module_alias_targets(
+            os.path.join(self.package_folder, self._module_subfolder, self._module_target_file),
+            {"geotiff_library": "geotiff::geotiff"}
+        )
+
+    @staticmethod
+    def _create_cmake_module_variables(module_file):
+        content = textwrap.dedent("""\
+            if(DEFINED GeoTIFF_FOUND)
+                set(GEOTIFF_FOUND ${GeoTIFF_FOUND})
+            endif()
+            if(DEFINED GeoTIFF_INCLUDE_DIR)
+                set(GEOTIFF_INCLUDE_DIR ${GeoTIFF_INCLUDE_DIR})
+            endif()
+            if(DEFINED GeoTIFF_LIBRARIES)
+                set(GEOTIFF_LIBRARIES ${GeoTIFF_LIBRARIES})
+            endif()
+        """)
+        tools.save(module_file, content)
+
+    @staticmethod
+    def _create_cmake_module_alias_targets(module_file, targets):
+        content = ""
+        for alias, aliased in targets.items():
+            content += textwrap.dedent("""\
+                if(TARGET {aliased} AND NOT TARGET {alias})
+                    add_library({alias} INTERFACE IMPORTED)
+                    set_property(TARGET {alias} PROPERTY INTERFACE_LINK_LIBRARIES {aliased})
+                endif()
+            """.format(alias=alias, aliased=aliased))
+        tools.save(module_file, content)
+
+    @property
+    def _module_subfolder(self):
+        return os.path.join("lib", "cmake")
+
+    @property
+    def _module_vars_file(self):
+        return "conan-official-{}-variables.cmake".format(self.name)
+
+    @property
+    def _module_target_file(self):
+        return "conan-official-{}-targets.cmake".format(self.name)
 
     def package_info(self):
-        # TODO: CMake imported target shouldn't be namespaced (geotiff_library instead of GeoTIFF::geotiff_library)
         self.cpp_info.names["cmake_find_package"] = "GeoTIFF"
-        self.cpp_info.names["cmake_find_package_multi"] = "GeoTIFF"
-        self.cpp_info.components["geotiff"].names["cmake_find_package"] = "geotiff_library"
-        self.cpp_info.components["geotiff"].names["cmake_find_package_multi"] = "geotiff_library"
-        self.cpp_info.components["geotiff"].libs = tools.collect_libs(self)
+        self.cpp_info.names["cmake_find_package_multi"] = "geotiff"
+        self.cpp_info.builddirs.append(self._module_subfolder)
+        self.cpp_info.build_modules["cmake_find_package"] = [os.path.join(self._module_subfolder, self._module_vars_file)]
+        self.cpp_info.build_modules["cmake_find_package_multi"] = [os.path.join(self._module_subfolder, self._module_target_file)]
+        self.cpp_info.libs = tools.collect_libs(self)
         if self.settings.os == "Linux":
-            self.cpp_info.components["geotiff"].system_libs.append("m")
-        self.cpp_info.components["geotiff"].requires = ["libtiff::libtiff", "proj::proj"]
+            self.cpp_info.system_libs.append("m")

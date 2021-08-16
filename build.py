@@ -38,6 +38,6 @@ if __name__ == "__main__":
 
     builder = ConanMultiPackager(username=username, channel=channel,
                                  build_policy="missing", skip_check_credentials=True)
-    builder.add_common_builds(shared_option_name=shared_option_name, pure_c=True, dll_with_static_runtime=True,
+    builder.add_common_builds(shared_option_name=shared_option_name, pure_c=True, dll_with_static_runtime=False,
                               reference=reference, build_all_options_values=None)
     builder.run()
